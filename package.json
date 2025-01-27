@@ -2,117 +2,355 @@
 	"name": "godot-tools",
 	"displayName": "godot-tools",
 	"icon": "icon.png",
-	"version": "1.1.2",
-	"description": "Tools for game development with godot game engine",
+	"version": "2.3.0",
+	"description": "Tools for game development with Godot Engine and GDScript",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/godotengine/godot-vscode-plugin"
 	},
+	"bugs": {
+		"url": "https://github.com/godotengine/godot-vscode-plugin/issues"
+	},
+	"license": "MIT",
 	"author": "The Godot Engine community",
 	"publisher": "geequlim",
 	"engines": {
-		"vscode": "^1.33.0"
+		"vscode": "^1.80.0"
 	},
 	"categories": [
-		"Other",
-		"Debuggers"
+		"Programming Languages",
+		"Linters",
+		"Snippets",
+		"Debuggers",
+		"Formatters",
+		"Other"
 	],
 	"activationEvents": [
 		"workspaceContains:project.godot",
-		"onLanguage:gdscript",
 		"onDebugResolve:godot"
 	],
 	"main": "./out/extension.js",
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
-		"lint": "tslint -p ./",
-		"watch": "tsc -watch -p ./"
+		"lint": "eslint ./src --quiet",
+		"watch": "tsc -watch -p ./",
+		"package": "vsce package",
+		"vscode:prepublish": "npm run esbuild-base -- --minify",
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+		"esbuild": "npm run esbuild-base -- --sourcemap",
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+		"generate-icons": "ts-node tools/generate_icons.ts",
+		"test": "vscode-test"
 	},
 	"contributes": {
+		"customEditors": [
+			{
+				"viewType": "gddoc",
+				"displayName": "Godot Documentation",
+				"selector": [
+					{
+						"filenamePattern": "*.gddoc"
+					}
+				]
+			}
+		],
 		"commands": [
 			{
-				"command": "godot-tool.open_editor",
-				"title": "Godot Tools: Open workspace with Godot editor"
+				"category": "Godot Tools",
+				"command": "godotTools.openEditor",
+				"title": "Open workspace with Godot editor"
 			},
 			{
-				"command": "godot-tool.run_project",
-				"title": "Godot Tools: Run workspace as Godot project"
+				"category": "Godot Tools",
+				"command": "godotTools.startLanguageServer",
+				"title": "Start the GDScript Language Server for this workspace"
 			},
 			{
-				"command": "godot-tool.list_native_classes",
-				"title": "Godot Tools: List native classes of godot"
+				"category": "Godot Tools",
+				"command": "godotTools.stopLanguageServer",
+				"title": "Stop the GDScript Language Server for this workspace"
 			},
 			{
-				"command": "godot-tool.debugger.inspect_node",
+				"category": "Godot Tools",
+				"command": "godotTools.listGodotClasses",
+				"title": "List Godot classes"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.inspectNode",
 				"title": "Inspect Remote Node",
 				"icon": {
-					"light": "resources/light/icon_GUI_visibility_visible.svg",
-					"dark": "resources/dark/icon_GUI_visibility_visible.svg"
+					"light": "resources/godot_icons/light/GuiVisibilityVisible.svg",
+					"dark": "resources/godot_icons/dark/GuiVisibilityVisible.svg"
 				}
 			},
 			{
-				"command": "godot-tool.debugger.refresh_scene_tree",
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.refreshSceneTree",
 				"title": "Refresh",
 				"icon": {
-					"light": "resources/light/icon_refresh.svg",
-					"dark": "resources/dark/icon_refresh.svg"
+					"light": "resources/godot_icons/light/Reload.svg",
+					"dark": "resources/godot_icons/dark/Reload.svg"
 				}
 			},
 			{
-				"command": "godot-tool.debugger.refresh_inspector",
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.refreshInspector",
 				"title": "Refresh",
 				"icon": {
-					"light": "resources/light/icon_refresh.svg",
-					"dark": "resources/dark/icon_refresh.svg"
+					"light": "resources/godot_icons/light/Reload.svg",
+					"dark": "resources/godot_icons/dark/Reload.svg"
 				}
 			},
 			{
-				"command": "godot-tool.debugger.edit_value",
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.editValue",
 				"title": "Edit value",
 				"icon": {
-					"light": "resources/light/icon_edit.svg",
-					"dark": "resources/dark/icon_edit.svg"
+					"light": "resources/godot_icons/light/Edit.svg",
+					"dark": "resources/godot_icons/dark/Edit.svg"
 				}
 			},
 			{
-				"command": "godot-tool.set_scene_file",
-				"title": "Set as Scene File"
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.debugCurrentFile",
+				"title": "Debug Current File",
+				"icon": {
+					"light": "resources/godot_icons/light/PlayScene.svg",
+					"dark": "resources/godot_icons/dark/PlayScene.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.debugPinnedFile",
+				"title": "Debug Pinned File",
+				"icon": {
+					"light": "resources/godot_icons/light/Play.svg",
+					"dark": "resources/godot_icons/dark/Play.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.pinFile",
+				"title": "Pin Scene File",
+				"icon": "resources/pin_off.svg"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.unpinFile",
+				"title": "Unpin Scene File",
+				"icon": "resources/pin_on.svg"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.debugger.openPinnedFile",
+				"title": "Open the currently pinned scene"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.refresh",
+				"title": "Refresh Scene Preview",
+				"icon": {
+					"light": "resources/godot_icons/light/Reload.svg",
+					"dark": "resources/godot_icons/dark/Reload.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.openCurrentScene",
+				"title": "Open the Scene Preview's current scene",
+				"icon": {
+					"light": "resources/godot_icons/light/PackedScene.svg",
+					"dark": "resources/godot_icons/dark/PackedScene.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.openMainScript",
+				"title": "Open the main script of the Scene Preview's current scene",
+				"icon": {
+					"light": "resources/godot_icons/light/Script.svg",
+					"dark": "resources/godot_icons/dark/Script.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.lock",
+				"title": "Lock Scene Preview",
+				"icon": {
+					"light": "resources/godot_icons/light/Unlock.svg",
+					"dark": "resources/godot_icons/dark/Unlock.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.unlock",
+				"title": "Unlock Scene Preview",
+				"icon": {
+					"light": "resources/godot_icons/light/Lock.svg",
+					"dark": "resources/godot_icons/dark/Lock.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.goToDefinition",
+				"title": "Go to Definition"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.openDocumentation",
+				"title": "Open Documentation"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.copyNodePath",
+				"title": "Copy Node Path"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.copyResourcePath",
+				"title": "Copy Resource Path"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.openScene",
+				"title": "Open Scene",
+				"icon": {
+					"light": "resources/InstanceOptions.svg",
+					"dark": "resources/InstanceOptions.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.scenePreview.openScript",
+				"title": "Open Script",
+				"icon": {
+					"light": "resources/godot_icons/light/Script.svg",
+					"dark": "resources/godot_icons/dark/Script.svg"
+				}
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.switchSceneScript",
+				"title": "Switch Scene/Script"
+			},
+			{
+				"category": "Godot Tools",
+				"command": "godotTools.copyResourcePath",
+				"title": "Copy Resource Path"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "godotTools.switchSceneScript",
+				"key": "alt+o",
+				"when": "editorLangId in godotTools.context.godotFiles && editorTextFocus"
 			}
 		],
 		"configuration": {
 			"type": "object",
-			"title": "Godot Tools configuration",
+			"title": "Godot Tools",
 			"properties": {
-				"godot_tools.gdscript_lsp_server_protocol": {
-					"type": [
-						"string"
-					],
-					"enum": [
-						"ws",
-						"tcp"
-					],
-					"default": "tcp",
-					"enumDescriptions": [
-						"Using WebSocket protocol to connect to Godot 3.2 and Godot 3.2.1",
-						"Using TCP protocol to connect to Godot 3.2.2 and newer versions"
-					],
-					"description": "The server protocol of the GDScript language server.\nYou have restart VSCode editor after change this value."
+				"godotTools.documentation.pageScale": {
+					"type": "integer",
+					"default": 100,
+					"minimum": 50,
+					"maximum": 200,
+					"description": "Scale factor (%) to apply to the Godot documentation viewer."
 				},
-				"godot_tools.gdscript_lsp_server_port": {
+				"godotTools.editorPath.godot3": {
+					"type": "string",
+					"default": "godot3",
+					"description": "Path to the Godot 3 editor executable"
+				},
+				"godotTools.editorPath.godot4": {
+					"type": "string",
+					"default": "godot",
+					"description": "Path to the Godot 4 editor executable"
+				},
+				"godotTools.editor.verbose": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether to launch the Godot Editor with the --verbose flag"
+				},
+				"godotTools.editor.revealTerminal": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether to reveal the terminal when launching the Godot Editor"
+				},
+				"godotTools.formatter.maxEmptyLines": {
+					"type": "string",
+					"enum": [
+						"1",
+						"2"
+					],
+					"enumDescriptions": [
+						"1 empty line. A more compact style.",
+						"2 empty lines. Conforms to the official GDScript style guide."
+					],
+					"default": "2",
+					"description": "Number of empty lines allowed anywhere in the file"
+				},
+				"godotTools.formatter.denseFunctionParameters": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether extra space should be removed from function parameter lists"
+				},
+				"godotTools.lsp.serverHost": {
+					"type": "string",
+					"default": "127.0.0.1",
+					"description": "The server host of the GDScript language server"
+				},
+				"godotTools.lsp.serverPort": {
 					"type": "number",
 					"default": 6008,
+					"minimum": 0,
+					"maximum": 65535,
 					"description": "The server port of the GDScript language server"
 				},
-				"godot_tools.editor_path": {
-					"type": "string",
-					"default": "",
-					"description": "The absolute path to the Godot editor executable"
+				"godotTools.lsp.headless": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether to launch the LSP as a headless child process"
 				},
-				"godot_tools.scene_file_config": {
-					"type": "string",
-					"default": "",
-					"description": "The scene file to run"
+				"godotTools.lsp.autoReconnect.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether the plugin should attempt to reconnect to the GDScript language server"
+				},
+				"godotTools.lsp.autoReconnect.cooldown": {
+					"type": "number",
+					"default": 3000,
+					"description": "The number of milliseconds to wait before attempting to reconnect"
+				},
+				"godotTools.lsp.autoReconnect.attempts": {
+					"type": "number",
+					"default": 10,
+					"description": "How many times the client will attempt to reconnect"
+				},
+				"godotTools.scenePreview.previewRelatedScenes": {
+					"enum": [
+						"anyFolder",
+						"sameFolder",
+						"off"
+					],
+					"enumDescriptions": [
+						"Attempt to preview a related scene from anywhere in the workspace.",
+						"Attempt to preview a related scene from the same folder.",
+						"Do not attempt to preview a related scene."
+					],
+					"default": "sameFolder",
+					"description": "Controls where the Scene Preview will search for related scenes when viewing a script file."
+				},
+				"godotTools.inlayHints.gdscript": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether to enable inlay hints in GDScript files (experimental)"
+				},
+				"godotTools.inlayHints.gdresource": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether to enable inlay hints in GDResource (.tscn, .tres, etc) files"
 				}
 			}
 		},
@@ -126,19 +364,44 @@
 				"extensions": [
 					".gd"
 				],
-				"configuration": "./configurations/gdscript-configuration.json"
+				"configuration": "./configurations/gdscript.language-configuration.json"
 			},
 			{
-				"id": "properties",
+				"id": "gdscene",
+				"aliases": [
+					"GDScene",
+					"gdscene"
+				],
 				"extensions": [
-					"cfg",
-					"tres",
-					"tscn",
-					"godot",
-					"gdns",
-					"gdnlib",
-					"import"
-				]
+					".tscn"
+				],
+				"configuration": "./configurations/gdresource.language-configuration.json"
+			},
+			{
+				"id": "gdresource",
+				"aliases": [
+					"GDResource",
+					"gdresource"
+				],
+				"extensions": [
+					".godot",
+					".tres",
+					".import",
+					".gdns",
+					".gdnlib"
+				],
+				"configuration": "./configurations/gdresource.language-configuration.json"
+			},
+			{
+				"id": "gdshader",
+				"aliases": [
+					"gdshader"
+				],
+				"extensions": [
+					".gdshader",
+					".gdshaderinc"
+				],
+				"configuration": "./configurations/gdshader.language-configuration.json"
 			}
 		],
 		"grammars": [
@@ -146,6 +409,30 @@
 				"language": "gdscript",
 				"scopeName": "source.gdscript",
 				"path": "./syntaxes/GDScript.tmLanguage.json"
+			},
+			{
+				"language": "gdresource",
+				"scopeName": "source.gdresource",
+				"path": "./syntaxes/GDResource.tmLanguage.json"
+			},
+			{
+				"language": "gdscene",
+				"scopeName": "source.gdresource",
+				"path": "./syntaxes/GDResource.tmLanguage.json"
+			},
+			{
+				"language": "gdshader",
+				"scopeName": "source.gdshader",
+				"path": "./syntaxes/GDShader.tmLanguage.json"
+			}
+		],
+		"semanticTokenScopes": [
+			{
+				"scopes": {
+					"nodePath": [
+						"constant.character.escape"
+					]
+				}
 			}
 		],
 		"snippets": [
@@ -158,73 +445,170 @@
 			{
 				"type": "godot",
 				"label": "GDScript Godot Debug",
-				"program": "./out/debugger/debug_adapter.js",
 				"runtime": "node",
 				"configurationAttributes": {
 					"launch": {
-						"required": [
-							"project",
-							"port",
-							"address"
-						],
+						"required": [],
 						"properties": {
 							"project": {
 								"type": "string",
 								"description": "Absolute path to a directory with a project.godot file.",
 								"default": "${workspaceFolder}"
 							},
-							"port": {
-								"type": "number",
-								"description": "The port number for the Godot remote debugger to use.",
-								"default": 6007
-							},
 							"address": {
 								"type": "string",
 								"description": "The IP address for the Godot remote debugger to use.",
 								"default": "127.0.0.1"
 							},
-							"launch_game_instance": {
-								"type": "boolean",
-								"description": "Whether to launch an instance of the workspace's game, or wait for a debug session to connect.",
-								"default": true
+							"port": {
+								"type": "number",
+								"description": "The port number for the Godot remote debugger to use.",
+								"default": 6007
 							},
-							"launch_scene": {
-								"type": "boolean",
-								"description": "Whether to launch an instance the currently opened TSCN file, or launch the game project. Only works with launch_game_instance being true.",
+							"scene": {
+								"type": "string",
+								"enum": [
+									"main",
+									"current",
+									"pinned"
+								],
+								"enumDescriptions": [
+									"Launch the 'main_scene' specified in project.godot",
+									"Launch the scene (or related scene) in the current editor",
+									"Launch the pinned scene"
+								],
+								"description": "Scene file to run when debugging. Choices are 'main', 'current', 'pinned', or providing a custom path to a scene.",
+								"default": ""
+							},
+							"editor_path": {
+								"type": "string",
+								"description": "Absolute path to the Godot executable to be used for this debug profile.",
 								"default": false
 							},
-							"scene_file": {
+							"profiling": {
+								"type": "boolean",
+								"description": "Enable profiling in the script debugger.",
+								"default": false
+							},
+							"single_threaded_scene": {
+								"type": "boolean",
+								"description": "Scene tree runs in single-threaded mode. Sub-thread groups are disabled and run on the main thread. (Godot 4 only)",
+								"default": false
+							},
+							"debug_collisions": {
+								"type": "boolean",
+								"description": "Show collision shapes when running the scene.",
+								"default": false
+							},
+							"debug_paths": {
+								"type": "boolean",
+								"description": "Show navigation polygons when running the scene. (Godot 4 only)",
+								"default": false
+							},
+							"debug_navigation": {
+								"type": "boolean",
+								"description": "Show navigation polygons when running the scene.",
+								"default": false
+							},
+							"debug_avoidance": {
+								"type": "boolean",
+								"description": "Show navigation avoidance debug visuals when running the scene. (Godot 4 only)",
+								"default": false
+							},
+							"debug_stringnames": {
+								"type": "boolean",
+								"description": "Print all StringName allocations to stdout when the engine quits. (Godot 4 only)",
+								"default": false
+							},
+							"frame_delay": {
+								"type": "number",
+								"description": "Simulate high CPU load (delay each frame by <ms> milliseconds)."
+							},
+							"time_scale": {
+								"type": "number",
+								"description": "Force time scale (higher values are faster, 1.0 is normal speed)."
+							},
+							"disable_vsync": {
+								"type": "boolean",
+								"description": "Forces disabling of vertical synchronization, even if enabled in the project settings. Does not override driver-level V-Sync enforcement. (Godot 4 only)",
+								"default": false
+							},
+							"fixed_fps": {
+								"type": "number",
+								"description": "Force a fixed number of frames per second. This setting disables real-time synchronization."
+							},
+							"additional_options": {
 								"type": "string",
-								"description": "Relative path from the godot.project file to a TSCN file. If launch_scene and launch_game_instance are true, and this file is defined, will launch the specified file instead of looking for an active TSCN file.",
+								"description": "Additional command line arguments.",
 								"default": ""
+							}
+						}
+					},
+					"attach": {
+						"required": [],
+						"properties": {
+							"address": {
+								"type": "string",
+								"description": "The IP address for the Godot remote debugger to use.",
+								"default": "127.0.0.1"
+							},
+							"port": {
+								"type": "number",
+								"description": "The port number for the Godot remote debugger to use.",
+								"default": 6007
 							}
 						}
 					}
 				},
 				"initialConfigurations": [
 					{
-						"name": "GDScript Godot",
+						"name": "GDScript: Launch Project",
 						"type": "godot",
 						"request": "launch",
 						"project": "${workspaceFolder}",
-						"port": 6007,
-						"address": "127.0.0.1",
-						"launch_game_instance": true,
-						"launch_scene": false
+						"debug_collisions": false,
+						"debug_paths": false,
+						"debug_navigation": false,
+						"additional_options": ""
 					}
 				],
 				"configurationSnippets": [
 					{
-						"label": "GDScript Godot Debug: Launch",
-						"description": "A new configuration for debugging a Godot project.",
+						"label": "GDScript: Launch Project",
+						"description": "A config to launch the current project.",
 						"body": {
+							"name": "GDScript: Launch Project",
 							"type": "godot",
 							"request": "launch",
 							"project": "${workspaceFolder}",
-							"port": 6007,
-							"address": "127.0.0.1",
-							"launch_game_instance": true,
-							"launch_scene": false
+							"debug_collisions": false,
+							"debug_paths": false,
+							"debug_navigation": false,
+							"additional_options": ""
+						}
+					},
+					{
+						"label": "GDScript: Launch Current File",
+						"description": "A config to launch the currently open scene.",
+						"body": {
+							"name": "GDScript: Launch Current File",
+							"type": "godot",
+							"request": "launch",
+							"scene": "current",
+							"project": "${workspaceFolder}",
+							"additional_options": ""
+						}
+					},
+					{
+						"label": "GDScript: Launch Pinned File",
+						"description": "A config to launch the currently pinned scene.",
+						"body": {
+							"name": "GDScript: Launch Pinned File",
+							"type": "godot",
+							"request": "launch",
+							"scene": "pinned",
+							"project": "${workspaceFolder}",
+							"additional_options": ""
 						}
 					}
 				]
@@ -235,77 +619,287 @@
 				"language": "gdscript"
 			}
 		],
-		"views": {
-			"debug": [
+		"viewsContainers": {
+			"activitybar": [
 				{
-					"id": "active-scene-tree",
-					"name": "Active Scene Tree",
-					"when": "inDebugMode && debugType == 'godot'"
-				},
-				{
-					"id": "inspect-node",
-					"name": "Inspector",
-					"when": "inDebugMode && debugType == 'godot'"
+					"id": "godotTools",
+					"title": "Godot Tools",
+					"icon": "resources/godot_icon.svg"
 				}
 			]
 		},
+		"views": {
+			"debug": [
+				{
+					"id": "activeSceneTree",
+					"name": "Active Scene Tree"
+				},
+				{
+					"id": "inspectNode",
+					"name": "Inspector"
+				}
+			],
+			"godotTools": [
+				{
+					"id": "scenePreview",
+					"name": "Scene Preview"
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "activeSceneTree",
+				"contents": "Scene Tree data has not been requested"
+			},
+			{
+				"view": "inspectNode",
+				"contents": "Node has not been inspected"
+			},
+			{
+				"view": "scenePreview",
+				"contents": "Open a Scene to see a preview of its structure"
+			}
+		],
 		"menus": {
+			"commandPalette": [
+				{
+					"command": "godotTools.listGodotClasses",
+					"when": "godotTools.context.connectedToLSP"
+				},
+				{
+					"command": "godotTools.scenePreview.goToDefinition",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.openDocumentation",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.copyNodePath",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.copyResourcePath",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.openScript",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.scenePreview.openScene",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.editValue",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.inspectNode",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.refreshSceneTree",
+					"when": "false"
+				},
+				{
+					"command": "godotTools.debugger.refreshInspector",
+					"when": "false"
+				}
+			],
 			"view/title": [
 				{
-					"command": "godot-tool.debugger.refresh_scene_tree",
-					"when": "view == active-scene-tree",
+					"command": "godotTools.debugger.refreshSceneTree",
+					"when": "view == activeSceneTree",
 					"group": "navigation"
 				},
 				{
-					"command": "godot-tool.debugger.refresh_inspector",
-					"when": "view == inspect-node",
+					"command": "godotTools.debugger.refreshInspector",
+					"when": "view == inspectNode",
 					"group": "navigation"
+				},
+				{
+					"command": "godotTools.scenePreview.lock",
+					"when": "view == scenePreview && !godotTools.context.scenePreview.locked",
+					"group": "navigation@1"
+				},
+				{
+					"command": "godotTools.scenePreview.unlock",
+					"when": "view == scenePreview && godotTools.context.scenePreview.locked",
+					"group": "navigation@1"
+				},
+				{
+					"command": "godotTools.scenePreview.refresh",
+					"when": "view == scenePreview",
+					"group": "navigation@2"
+				},
+				{
+					"command": "godotTools.scenePreview.openMainScript",
+					"when": "view == scenePreview",
+					"group": "navigation@3"
+				},
+				{
+					"command": "godotTools.scenePreview.openCurrentScene",
+					"when": "view == scenePreview",
+					"group": "navigation@4"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "godot-tool.debugger.inspect_node",
-					"when": "view == active-scene-tree",
+					"command": "godotTools.debugger.inspectNode",
+					"when": "view == activeSceneTree",
 					"group": "inline"
 				},
 				{
-					"command": "godot-tool.debugger.inspect_node",
-					"when": "view == inspect-node && viewItem == remote_object",
+					"command": "godotTools.debugger.inspectNode",
+					"when": "view == inspectNode && viewItem == remote_object",
 					"group": "inline"
 				},
 				{
-					"command": "godot-tool.debugger.edit_value",
-					"when": "view == inspect-node && viewItem == editable_value",
+					"command": "godotTools.debugger.editValue",
+					"when": "view == inspectNode && viewItem == editable_value",
+					"group": "inline"
+				},
+				{
+					"command": "godotTools.scenePreview.goToDefinition",
+					"when": "view == scenePreview",
+					"group": "1@1"
+				},
+				{
+					"command": "godotTools.scenePreview.openDocumentation",
+					"when": "view == scenePreview",
+					"group": "1@1"
+				},
+				{
+					"command": "godotTools.scenePreview.copyNodePath",
+					"when": "view == scenePreview"
+				},
+				{
+					"command": "godotTools.scenePreview.copyResourcePath",
+					"when": "view == scenePreview && viewItem =~ /hasResourcePath/"
+				},
+				{
+					"command": "godotTools.scenePreview.openScene",
+					"when": "view == scenePreview && viewItem =~ /openable/",
+					"group": "1@2"
+				},
+				{
+					"command": "godotTools.scenePreview.openScript",
+					"when": "view == scenePreview && viewItem =~ /hasScript/",
+					"group": "1@2"
+				},
+				{
+					"command": "godotTools.scenePreview.openScene",
+					"when": "view == scenePreview && viewItem =~ /openable/",
+					"group": "inline"
+				},
+				{
+					"command": "godotTools.scenePreview.openScript",
+					"when": "view == scenePreview && viewItem =~ /hasScript/",
 					"group": "inline"
 				}
 			],
 			"explorer/context": [
 				{
-					"command": "godot-tool.set_scene_file",
-					"group": "2_workspace"
+					"command": "godotTools.debugger.pinFile",
+					"group": "2_workspace",
+					"when": "resourceLangId in godotTools.context.sceneLikeFiles && !(resourcePath in godotTools.context.pinnedScene)"
+				},
+				{
+					"command": "godotTools.debugger.unpinFile",
+					"group": "2_workspace",
+					"when": "resourceLangId in godotTools.context.sceneLikeFiles && (resourcePath in godotTools.context.pinnedScene)"
+				},
+				{
+					"command": "godotTools.copyResourcePath",
+					"group": "6_copypath"
+				}
+			],
+			"editor/title/run": [
+				{
+					"command": "godotTools.debugger.debugCurrentFile",
+					"group": "navigation@10",
+					"when": "editorLangId in godotTools.context.sceneLikeFiles && !isInDiffEditor && !virtualWorkspace"
+				},
+				{
+					"command": "godotTools.debugger.debugPinnedFile",
+					"group": "navigation@10",
+					"when": "editorLangId in godotTools.context.sceneLikeFiles && !isInDiffEditor && !virtualWorkspace"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "godotTools.debugger.pinFile",
+					"group": "navigation@11",
+					"when": "editorLangId in godotTools.context.sceneLikeFiles && !isInDiffEditor && !virtualWorkspace && !(resourcePath in godotTools.context.pinnedScene)"
+				},
+				{
+					"command": "godotTools.debugger.unpinFile",
+					"group": "navigation@11",
+					"when": "editorLangId in godotTools.context.sceneLikeFiles && !isInDiffEditor && !virtualWorkspace && (resourcePath in godotTools.context.pinnedScene)"
+				}
+			],
+			"editor/title/context": [
+				{
+					"command": "godotTools.copyResourcePath",
+					"group": "1_godot"
+				},
+				{
+					"command": "godotTools.debugger.pinFile",
+					"group": "1_godot",
+					"when": "resourceLangId in godotTools.context.sceneLikeFiles && !(resourcePath in godotTools.context.pinnedScene)"
+				},
+				{
+					"command": "godotTools.debugger.unpinFile",
+					"group": "1_godot",
+					"when": "resourceLangId in godotTools.context.sceneLikeFiles && (resourcePath in godotTools.context.pinnedScene)"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "godotTools.switchSceneScript",
+					"when": "editorLangId in godotTools.context.godotFiles",
+					"group": "custom1@1"
 				}
 			]
 		}
 	},
 	"devDependencies": {
-		"@types/marked": "^0.6.5",
-		"@types/mocha": "^2.2.42",
-		"@types/node": "^10.12.21",
-		"@types/prismjs": "^1.16.0",
-		"@types/vscode": "^1.33.0",
-		"@types/ws": "^6.0.1",
-		"tslint": "^5.16.0",
-		"typescript": "^3.5.1",
-		"vsce": "^1.76.1"
+		"@types/chai": "^4.3.11",
+		"@types/marked": "^4.0.8",
+		"@types/mocha": "^10.0.6",
+		"@types/node": "^18.15.0",
+		"@types/prismjs": "^1.16.8",
+		"@types/vscode": "^1.80.0",
+		"@types/ws": "^8.5.4",
+		"@typescript-eslint/eslint-plugin": "^5.57.1",
+		"@typescript-eslint/eslint-plugin-tslint": "^5.57.1",
+		"@typescript-eslint/parser": "^5.57.1",
+		"@vscode/test-cli": "^0.0.4",
+		"@vscode/test-electron": "^2.3.8",
+		"@vscode/vsce": "^2.29.0",
+		"chai": "^4.3.10",
+		"esbuild": "^0.17.15",
+		"eslint": "^8.37.0",
+		"mocha": "^10.2.0",
+		"ts-node": "^10.9.1",
+		"tsconfig-paths": "^4.2.0",
+		"tslint": "^5.20.1",
+		"typescript": "^5.2.2"
 	},
 	"dependencies": {
+		"@vscode/debugadapter": "^1.64.0",
+		"@vscode/debugprotocol": "^1.64.0",
 		"await-notify": "^1.0.1",
 		"global": "^4.4.0",
-		"marked": "^0.7.0",
+		"marked": "^4.0.11",
 		"net": "^1.0.2",
-		"terminate": "^2.1.2",
-		"vscode-debugadapter": "^1.38.0",
-		"vscode-languageclient": "^5.2.1",
-		"ws": "^7.0.0"
+		"prismjs": "^1.17.1",
+		"terminate": "^2.5.0",
+		"vscode-languageclient": "^7.0.0",
+		"vscode-oniguruma": "^2.0.1",
+		"vscode-textmate": "^9.0.0",
+		"ws": "^8.17.1",
+		"ya-bbcode": "^4.0.0"
 	}
 }
